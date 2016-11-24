@@ -1,0 +1,65 @@
+
+
+# TODO: Make this function work for Spotify
+_vol_toggle()
+{
+	VOL=$(_music_info vol)
+	[ $VOL -ne 0 ] && CUR_VOL=$VOL || VOLSTATE='mute'
+
+	case $VOL in
+		*)
+			pamixer --set-volume 0
+			export VOL_ICON="$(icon mute)"
+			;;
+		0)
+			pamixer --set-volume $CUR_VOL
+			export VOL_ICON="$(icon vol)"
+			;;
+	esac
+}
+
+_music_ctrl()
+{
+	case $1 in
+		vol)
+			echo "%{A:_vol_toggle}$VOL_ICON%{A}"
+			;;
+		play)
+			echo "%{A:dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Play:}$(icon toggle)%{A}"
+			;;
+		pause)
+			echo "%{A:dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Pause:}$(icon toggle)%{A}"
+			;;
+		stop)
+			echo "%{A:dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Stop:}$(icon toggle)%{A}"
+			;;
+		prev)
+			echo "%{A:dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Previous:}$(icon prv)%{A}"
+			;;
+		next)
+			echo "%{A:dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Next:}$(icon next)%{A}"
+			;;
+		rewind|rwd)
+			echo "%{A:dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player:}%{A3:dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player-5:}$(icon rwd)%{A}%{A}"
+			;;
+		forward|fwd)
+			echo "%{A:dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player:}%{A3:dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player+5:}$(icon fwd)%{A}%{A}"
+			;;
+		vol_up|vup)
+			echo "%{A:pamixer -i 1:}%{A3:pamixer -i 5:}$(icon vol_up)%{A}%{A}"
+			;;
+		vol_up|vdn)
+			echo "%{A:pamixer -d 1:}%{A3:pamixer -d 5:}$(icon vol_down)%{A}%{A}"
+			;;
+		toggle)
+			echo "%{A:dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause:}%{A3:dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Stop:}$(icon toggle)%{A}%{A}"
+			;;
+		*)
+			printf '\033[33mspotifyctrl\033[0m error: %s\n' 'Unknown Option'
+			exit 1
+			;;
+	esac
+	return 0
+}
+
+# vim: set ft=sh noet:

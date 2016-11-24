@@ -13,24 +13,39 @@ _include()
 	fi
 }
 
-test ! "$(pgrep mpd)" && {
-	printf '\033[33m%s:\033[0m process not found\n' 'mpd' && exit 1
-}
+if test ! "$(pgrep mpd)"; then
+	printf '\033[33m%s:\033[0m process not found\n' 'mpd'
+elif test ! "$(pgrep spotify)"; then
+	printf '\033[33m%s:\033[0m process not found\n' 'spotify'
+else
+	printf '\033[33m%s:\033[0m music player\n' 'incompatible' && exit 1
+fi
 
 # Fetches color via xrdb
 _include "modules/barcolr"
-# MPD info fetcher
-_include "modules/mpdinfo"
 # Prints the respective icons that are present in the siji font
 _include "modules/icon"
-# Clickable Media Keys for playback controls with icons
-_include "modules/mpdctrl"
 # Draw a Progress bar for total played time using mkb
 _include "modules/progressbar"
 # Draw a Progress bar for the current volume level using mkb
 _include "modules/volbar"
-# Determine mpd's state and set the music icon's color and pause message
-_include "modules/mpdstate"
+
+# Module loader that loads files respective to each program
+if test "$(pgrep mpd)"; then	
+	# Clickable Media Keys for playback controls with icons
+	_include "modules/mpdctrl"
+	# MPD info fetcher
+	_include "modules/mpdinfo"
+	# Determine mpd's state and set the music icon's color and pause message
+	_include "modules/mpdstate"
+elif test "$(pgrep spotify)"; then 
+	# Spotify info fetcher
+	_include "modules/spotifyinfo"
+	# Spotify Control Media keys with icons
+	_include "modules/spotifyctl"
+	# Spotify state
+	_include "modules/spotifystate"
+fi
 
 # Update interval, see sleep(1) for more details
 T=0.2
