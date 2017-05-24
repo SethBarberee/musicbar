@@ -1,9 +1,3 @@
-
-_length()
-{
-	LENGTH= $(dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.freedesktop.DBus.Properties.Get string:'org.mpris.MediaPlayer2.Player' string:'Metadata'|egrep -A 1 "length"|egrep -v "length"|cut -b 44-|cut -d '"' -f 1|egrep -v ^$)
-}
-
 _music_info()
 {
 	case $1 in
@@ -23,7 +17,19 @@ _music_info()
 			echo `dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.freedesktop.DBus.Properties.Get string:'org.mpris.MediaPlayer2.Player' string:'Metadata'|egrep -A 1 "title"|egrep -v "title"|cut -b 44-|cut -d '"' -f 1|egrep -v ^$`
 			;;
 		total)
-			_length
+		    ms="$(echo `dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.freedesktop.DBus.Properties.Get string:'org.mpris.MediaPlayer2.Player' string:'Metadata'|egrep -A 2 "length"|egrep -v "length"|egrep -v "array"|cut -b 43-|cut -d '"' -f 1|egrep -v ^$`)"
+			# Convert length from microseconds to seconds
+			seci="$(echo `expr $ms / 1000000`)"
+			# Convert to minutes
+			min="$(($seci / 60))"
+			# Subtract minutes from total seconds to get actual seconds
+			secf="$(($seci - $min * 60))"
+			# If seconds is a single digit, correct it to have a 0
+			if (("$secf" < 10)); then
+				secf="0$secf"
+		    fi
+			# Echo the length in a legible format
+			echo "$min:$secf"
 			;;
 		played)
 			echo 'Elasped'
